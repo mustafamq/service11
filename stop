@@ -1,4 +1,4 @@
-PowerShell 7.4.5
+
 PS C:\Users\musta> # Define log file path
 PS C:\Users\musta> $logFilePath = "C:\ServiceNinjaLog.txt"
 PS C:\Users\musta>
