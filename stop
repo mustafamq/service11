@@ -1,0 +1,232 @@
+PowerShell 7.4.5
+PS C:\Users\musta> # Define log file path
+PS C:\Users\musta> $logFilePath = "C:\ServiceNinjaLog.txt"
+PS C:\Users\musta>
+PS C:\Users\musta> # Function to write log
+PS C:\Users\musta> function Write-Log {
+>>     param ([string]$message)
+>>     Add-Content -Path $logFilePath -Value "$(Get-Date) : $message"
+>> }
+PS C:\Users\musta>
+PS C:\Users\musta> # List of common non-essential services to stop
+PS C:\Users\musta> $servicesToStop = @(
+>>     "Fax",
+>>     "WSearch",  # Windows Search - Provides content indexing, property caching, and search results for files, email, and other content.
+>>     "Spooler",  # Print Spooler - Manages all print jobs to be sent to a printer.
+>>     "RemoteRegistry",  # Remote Registry - Enables remote users to modify registry settings on this computer.
+>>     "Themes",  # Themes - Provides user experience theme management.
+>>     "WaaSMedicSvc",  # Windows Update Medic Service - Enables remediation and protection of Windows Update components.
+>>     "WinDefend",  # Windows Defender Antivirus Service - Windows Defender Antivirus Service.
+>>     "WdNisSvc",  # Windows Defender Network Inspection Service - Network Inspection System.
+>>     "SysMain",  # Superfetch - Maintains and improves system performance over time.
+>>     "seclogon",  # Secondary Logon - Enables starting processes under alternate credentials.
+>>     "TabletInputService",  # Touch Keyboard and Handwriting Panel Service - Enables touch keyboard and handwriting panel functionality.
+>>     "WerSvc",  # Windows Error Reporting Service - Allows errors to be reported when programs stop working or responding and allows existing solutions to be delivered.
+>>     "TrkWks",  # Distributed Link Tracking Client - Maintains links between NTFS files within a computer or across computers in a network.
+>>     "bthserv",  # Bluetooth Support Service - Supports discovery and association of remote Bluetooth devices.
+>>     "PcaSvc",  # Program Compatibility Assistant Service - Provides support for the Program Compatibility Assistant.
+>>     "SCardSvr",  # Smart Card - Manages access to smart cards read by this computer.
+>>     "ScDeviceEnum",  # Smart Card Removal Policy - Allows the system to be configured to lock the user desktop upon smart card removal.
+>>     "DiagTrack",  # Diagnostics Tracking Service - Provides data collection and transmission for usage and diagnostics information.
+>>     "dmwappushservice",  # dmwappushsvc - Enables Windows 10 Mobile messaging.
+>>     "MapsBroker",  # Downloaded Maps Manager - Maps Manager - Manages maps that are downloaded.
+>>     "AppReadiness",  # App Readiness - Gets apps ready for use the first time a user signs in to this PC and when adding new apps.
+>>     "DPS",  # Diagnostic Policy Service - Enables problem detection, troubleshooting, and resolution for Windows components.
+>>     "lfsvc",  # Geolocation Service - Monitors the current location of the system and manages geofences.
+>>     "WbioSrvc",  # Windows Biometric Service - Manages biometric data.
+>>     "RetailDemo",  # Retail Demo Service - Facilitates retail demo mode.
+>>     "HomeGroupProvider",  # HomeGroup Provider - Performs networking tasks associated with configuration and maintenance of HomeGroups.
+>>     "HomeGroupListener",  # HomeGroup Listener - Makes local computer changes associated with configuration and maintenance of HomeGroups.
+>>     "WalletService",  # WalletService - Manages payment and NFC.
+>>     "InstallService",  # Microsoft Store Install Service - Provides infrastructure support for the Microsoft Store.
+>>     "RemoteDesktopServices",  # Remote Desktop Configuration - Handles configuration for Remote Desktop Services.
+>>     "ConnectedUserExperiencesAndTelemetry",  # Connected User Experiences and Telemetry - Manages telemetry and provides data for insights.
+>>     "OneSyncSvc",  # Sync Host - This service synchronizes mail, contacts, calendar, and various other user data.
+>>     "PrintNotify"  # Printer Extensions and Notifications - This service opens a new dialogue window for various apps.
+>> )
+PS C:\Users\musta>
+PS C:\Users\musta> # Expanded list of potentially insecure services to stop and disable
+PS C:\Users\musta> $unsecureServices = @(
+>>     "TermService",  # Remote Desktop Services - Manages remote desktop connections.
+>>     "RemoteAccess",  # Routing and Remote Access - Offers routing services to businesses in local area and wide area network environments.
+>>     "SNMP",  # SNMP Service - Includes agents that monitor the activity in network devices and reports to the network console workstation.
+>>     "Telnet",  # Telnet - Allows a remote user to log on to the system and use it as if they were an actual user on a local console.
+>>     "TFTPD",  # Trivial File Transfer Protocol Daemon - Provides TFTP network file transfer.
+>>     "upnphost",  # UPnP Device Host - Allows hosted devices to be discovered and controlled over the network.
+>>     "SSDPSRV",  # SSDP Discovery - Discovers networked devices and services that use SSDP, such as networked printers.
+>>     "Netlogon",  # Netlogon - Maintains a secure channel between your computer and the domain controller for authenticating users and services.
+>>     "WcnSvc",  # Windows Connect Now - Configures wireless (802.11) settings.
+>>     "RemoteRegistry",  # Remote Registry - Enables remote users to modify registry settings on this computer.
+>>     "lsass",  # Local Security Authority Subsystem Service - Enforces the security policy on the system.
+>>     "WinRM",  # Windows Remote Management - Provides secure management over HTTP.
+>>     "WmiApSrv",  # WMI Performance Adapter - Provides performance library information from WMI providers.
+>>     "RemoteAssistance",  # Remote Assistance - Allows a user to get help from a remote Windows user.
+>>     "RpcSs",  # Remote Procedure Call (RPC) - Provides the endpoint mapper and other miscellaneous RPC services.
+>>     "LanmanServer",  # Server - Supports file, print, and named-pipe sharing over the network.
+>>     "LanmanWorkstation",  # Workstation - Creates and maintains client network connections to remote servers.
+>>     "Messenger",  # Messenger - Sends and receives messages transmitted by administrators or by the Alerter service.
+>>     "NlaSvc",  # Network Location Awareness - Collects and stores configuration information for the network and notifies programs when this information is modified.
+>>     "netprofm",  # Network List Service - Identifies the networks to which the computer has connected, collects and stores properties for these networks.
+>>     "Netman",  # Network Connections - Manages objects in the Network Connections folder, where you can view both local area network and remote connections.
+>>     "PolicyAgent",  # IPsec Policy Agent - Provides policy-based IPsec protection.
+>>     "IKEEXT",  # IKE and AuthIP IPsec Keying Modules - Facilitates secure exchange of keys and protection of data.
+>>     "BFE",  # Base Filtering Engine - Manages firewall and IPsec policies.
+>>     "wuauserv",  # Windows Update - Enables the detection, download, and installation of updates for Windows and other programs.
+>>     "EventLog",  # Windows Event Log - Manages events and event logs.
+>>     "lmhosts",  # TCP/IP NetBIOS Helper - Supports NetBIOS over TCP/IP (NetBT) service and NetBIOS name resolution.
+>>     "iphlpsvc",  # IP Helper - Provides tunnel connectivity using IPv6 transition technologies.
+>>     "ShellHWDetection",  # Shell Hardware Detection - Provides notifications for AutoPlay hardware events.
+>>     "CertPropSvc",  # Certificate Propagation - Copies user certificates and root certificate stores.
+>>     "SensorDataService",  # Sensor Data Service - Monitors and reports on sensor data.
+>>     "SCardSvr",  # Smart Card - Manages access to smart cards read by this computer.
+>>     "SharedAccess",  # Internet Connection Sharing (ICS) - Provides network address translation, addressing, name resolution, and/or intrusion prevention services for a home or small office network.
+>>     "WMPNetworkSvc",  # Windows Media Player Network Sharing Service - Shares Windows Media Player libraries to other networked players and media devices using Universal Plug and Play.
+>>     "DiagnosticServiceHost",  # Diagnostic Service Host - Hosts diagnostics service.
+>>     "TrkSrv",  # Distributed Link Tracking Server - Maintains links between NTFS files within a computer or across computers in a network.
+>>     "WinHttpAutoProxySvc",  # WinHTTP Web Proxy Auto-Discovery Service - Implements the Web Proxy Auto-Discovery Protocol (WPAD) to detect proxy servers automatically.
+>>     "FCIV",  # File Checksum Integrity Verifier - Verifies the integrity of files.
+>>     "WebClient"  # Web Client - Enables Windows-based programs to create, access, and modify non-local files across the internet.
+>> )
+PS C:\Users\musta>
+PS C:\Users\musta> # Function to stop services without user confirmation
+PS C:\Users\musta> function Stop-Services {
+>>     param ([string[]]$services)
+>>     foreach ($service in $services) {
+>>         try {
+>>             $svc = Get-Service -Name $service -ErrorAction SilentlyContinue
+>>             if ($svc.Status -eq 'Running') {
+>>                 Stop-Service -Name $service -Force -ErrorAction SilentlyContinue
+>>                 Write-Host "Stopped service: $service"
+>>                 Write-Log "Stopped service: $service"
+>>             } else {
+>>                 Write-Host "Service not running: $service"
+>>                 Write-Log "Service not running: $service"
+>>             }
+>>         } catch {
+>>             Write-Host "Service not found or cannot be stopped: $service"
+>>             Write-Log "Service not found or cannot be stopped: $service"
+>>         }
+>>
+>>         }
+>>     }
+PS C:\Users\musta> }
+ParserError:
+Line |
+   1 |  }
+     |  ~
+     | Unexpected token '}' in expression or statement.
+PS C:\Users\musta>
+PS C:\Users\musta> # Function to disable services
+PS C:\Users\musta> function Disable-Services {
+>>     param ([string[]]$services)
+>>     foreach ($service in $services) {
+>>         try {
+>>             Set-Service -Name $service -StartupType Disabled -ErrorAction SilentlyContinue
+>>             Write-Host "Disabled service: $service"
+>>             Write-Log "Disabled service: $service"
+>>         } catch {
+>>             Write-Host "Service not found or cannot be disabled: $service"
+>>             Write-Log "Service not found or cannot be disabled: $service"
+>>         }
+>>     }
+>> }
+PS C:\Users\musta>
+PS C:\Users\musta> # Function to backup current service states
+PS C:\Users\musta> function Backup-Services {
+>>     $backup = @()
+>>     foreach ($service in $servicesToStop + $unsecureServices) {
+>>         try {
+>>             $svc = Get-Service -Name $service -ErrorAction SilentlyContinue
+>>             $backup += [PSCustomObject]@{ Name = $service; Status = $svc.Status.ToString(); StartType = (Get-WmiObject -Class Win32_Service -Filter "Name='$service'").StartMode }
+>>         } catch {
+>>             Write-Log "Service not found: $service"
+>>         }
+>>     }
+>>     $savePath = Read-Host "Enter the path to save the backup file (e.g., C:\ServiceNinjaBackup.csv)"
+>>     $backup | Export-Csv -Path $savePath -NoTypeInformation
+>>     Write-Log "Backup completed and saved at $savePath"
+>> }
+PS C:\Users\musta>
+PS C:\Users\musta> # Function to restore service states from backup
+PS C:\Users\musta> function Restore-Services {
+>>     $backupPath = Read-Host "Enter the path to the backup file (e.g., C:\ServiceNinjaBackup.csv)"
+>>     $backup = Import-Csv -Path $backupPath
+>>     foreach ($entry in $backup) {
+>>         try {
+>>             if ($entry.Status -eq 'Running') {
+>>                 Start-Service -Name $entry.Name -ErrorAction SilentlyContinue
+>>                 Write-Log "Restored and started service: $entry.Name"
+>>             }
+>>             Set-Service -Name $entry.Name -StartupType $entry.StartType -ErrorAction SilentlyContinue
+>>             Write-Log "Restored service start type: $entry.Name"
+>>         } catch {
+>>             Write-Log "Failed to restore service: $entry.Name"
+>>         }
+>>     }
+>>     Write-Host "Restoration completed from $backupPath"
+>> }
+PS C:\Users\musta>
+PS C:\Users\musta> # Function to run a system health check
+PS C:\Users\musta> function Run-Health-Check {
+>>     $healthCheckResults = "C:\ServiceNinjaHealthCheck.txt"
+>>     Write-Output "Running system health check..."
+>>     sfc /scannow | Out-File -FilePath $healthCheckResults -Append
+>>     DISM /Online /Cleanup-Image /CheckHealth | Out-File -FilePath $healthCheckResults -Append
+>>     DISM /Online /Cleanup-Image /ScanHealth | Out-File -FilePath $healthCheckResults -Append
+>>     Write-Output "System health check completed. Results saved to $healthCheckResults"
+>>     Write-Log "System health check completed. Results saved to $healthCheckResults"
+>>     Restart-CriticalServices $healthCheckResults
+>> }
+PS C:\Users\musta>
+PS C:\Users\musta> # Function to restart critical services
+PS C:\Users\musta> function Restart-CriticalServices {
+>>     param ([string]$healthCheckResults)
+>>     $criticalServices = @(
+>>         "EventLog",  # Windows Event Log - Manages events and event logs.
+>>         "WinRM",  # Windows Remote Management - Provides secure management over HTTP.
+>>         "RpcSs",  # Remote Procedure Call (RPC) - Provides the endpoint mapper and other miscellaneous RPC services.
+>>         "LanmanWorkstation",  # Workstation - Creates and maintains client network connections to remote servers.
+>>         "LanmanServer"  # Server - Supports file, print, and named-pipe sharing over the network.
+>>     )
+>>
+>>     foreach ($service in $criticalServices) {
+>>         try {
+>>             $svc = Get-Service -Name $service -ErrorAction SilentlyContinue
+>>             if ($svc.Status -ne 'Running') {
+>>                 Start-Service -Name $service -ErrorAction SilentlyContinue
+>>                 Write-Log "Restarted critical service: $service"
+>>             }
+>>         } catch {
+>>             Write-Log "Failed to restart critical service: $service"
+>>         }
+>>     }
+>> }
+PS C:\Users\musta>
+PS C:\Users\musta> # Function to generate detailed report
+PS C:\Users\musta> function Generate-Report {
+>>     $reportFile = "C:\ServiceNinjaReport.txt"
+>>     Add-Content -Path $reportFile -Value "Service Ninja Detailed Report"
+>>     Add-Content -Path $reportFile -Value "==============================="
+>>     Add-Content -Path $reportFile -Value "$(Get-Date)"
+>>     Add-Content -Path $reportFile -Value "`nStopped Services:"
+>>     Get-Content -Path $logFilePath | Where-Object { $_ -like "*Stopped service:*" } | ForEach-Object { Add-Content -Path $reportFile -Value $_ }
+>>     Add-Content -Path $reportFile -Value "`nDisabled Services:"
+>>     Get-Content -Path $logFilePath | Where-Object { $_ -like "*Disabled service:*" } | ForEach-Object { Add-Content -Path $reportFile -Value $_ }
+>>     Add-Content -Path $reportFile -Value "`nRestored Services:"
+>>     Get-Content -Path $logFilePath | Where-Object { $_ -like "*Restored service:*" } | ForEach-Object { Add-Content -Path $reportFile -Value $_ }
+>>     Write-Log "Detailed report generated at $reportFile"
+>>     Write-Host "Detailed report generated at $reportFile"
+>> }
+PS C:\Users\musta>
+PS C:\Users\musta> # Main script execution
+PS C:\Users\musta> function Main {
+>>     Backup-Services
+>>     Stop-Services -services $servicesToStop
+>>     Disable-Services -services $unsecureServices
+>>     Run-Health-Check
+>>     Generate-Report
+>>     Write-Host "Selected services have been stopped and disabled. Backup file created and detailed report generated."
+>> }
+PS C:\Users\musta>
+PS C:\Users\musta> # Run the main function
+PS C:\Users\musta> Main
